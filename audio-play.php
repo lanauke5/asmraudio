@@ -1,0 +1,1 @@
+<?php require __DIR__.'/includes/bootstrap.php';$slug=trim($_GET['slug']??'');if($pdo&&$slug){$s=$pdo->prepare("UPDATE audio_tracks SET plays=plays+1 WHERE slug=? AND status='published'");$s->execute([$slug]);}header('Content-Type: application/json; charset=utf-8');echo json_encode(['ok'=>true]);

@@ -1,0 +1,25 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__.'/schema.php';
+ini_set('display_errors','0');ini_set('log_errors','1');ini_set('error_log',__DIR__.'/../storage/php-errors.log');date_default_timezone_set('UTC');
+if (!headers_sent()) { header('X-Content-Type-Options: nosniff'); header('Referrer-Policy: strict-origin-when-cross-origin'); header('X-Frame-Options: SAMEORIGIN'); header('Permissions-Policy: camera=(), microphone=(), geolocation=()'); header("Content-Security-Policy: default-src 'self'; media-src 'self' https:; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://ppcnesia.com https://*.ppcnesia.com; frame-src https: https://www.youtube-nocookie.com"); }
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_set_cookie_params(['httponly'=>true,'samesite'=>'Lax','secure'=>!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off']);
+    session_start();
+}
+$config = file_exists(__DIR__.'/../config.php') ? require __DIR__.'/../config.php' : require __DIR__.'/../config.example.php';
+try {$pdo=new PDO("mysql:host={$config['db_host']};dbname={$config['db_name']};charset=utf8mb4",$config['db_user'],$config['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);} catch(Throwable $e){$pdo=null;}
+if($pdo&&php_sapi_name()!=='cli'){try{$requestPath=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';$s=$pdo->prepare('SELECT target_url,status_code FROM redirects WHERE source_path=? AND active=1 LIMIT 1');$s->execute([$requestPath]);$redirect=$s->fetch();if($redirect&&$redirect['target_url']!==url(ltrim($requestPath,'/'))){$code=in_array((int)$redirect['status_code'],[301,302,307,308],true)?(int)$redirect['status_code']:301;header('Location: '.$redirect['target_url'],true,$code);exit;}}catch(Throwable $e){}}
+if($pdo){try{$pdo->exec("UPDATE articles SET status='published' WHERE status='scheduled' AND published_at IS NOT NULL AND published_at <= UTC_TIMESTAMP()");}catch(Throwable $e){}}
+if($pdo && php_sapi_name() !== 'cli'){try{$path=substr(parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/',0,500);$ip=$_SERVER['REMOTE_ADDR']??'';$v=$pdo->prepare('INSERT INTO page_views(path,ip_hash,referrer,user_agent) VALUES(?,?,?,?)');$v->execute([$path,$ip?hash('sha256',$ip):null,substr($_SERVER['HTTP_REFERER']??'',0,500),substr($_SERVER['HTTP_USER_AGENT']??'',0,500)]);}catch(Throwable $e){}}
+function e(?string $v):string{return htmlspecialchars($v??'',ENT_QUOTES,'UTF-8');}
+function safe_html(?string $html):string{$clean=strip_tags($html??'', '<p><br><strong><em><h2><h3><h4><ul><ol><li><a><blockquote>');$clean=preg_replace('/\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i','',$clean)??$clean;$clean=preg_replace('/(href\s*=\s*["\']?)\s*(?:javascript|vbscript|data):[^"\'>\s]*/i','$1#',$clean)??$clean;return $clean;}
+function url(string $path=''):string{global $config;$path=ltrim($path,'/');while(str_starts_with($path,'uploads/uploads/'))$path=substr($path,8);return rtrim($config['base_url'],'/').'/'.$path;}
+function media_url(?string $path):string{if(!$path)return '';if(filter_var($path,FILTER_VALIDATE_URL))return $path;return url(ltrim($path,'/'));}
+function csrf():string{$_SESSION['csrf']??=bin2hex(random_bytes(24));return $_SESSION['csrf'];}
+function verify_csrf():void{if(!hash_equals($_SESSION['csrf']??'',$_POST['csrf']??'')){http_response_code(419);exit('Invalid request');}}
+function require_admin():void{if(empty($_SESSION['admin_id'])){header('Location: '.url('admin/login.php'));exit;}}
+function current_admin_role():string{global $pdo;if(empty($_SESSION['admin_id'])||!$pdo)return '';static $role=null;if($role===null){$s=$pdo->prepare('SELECT role FROM users WHERE id=?');$s->execute([(int)$_SESSION['admin_id']]);$role=(string)($s->fetchColumn()?:'');}return $role;}
+function require_role(string ...$roles):void{require_admin();if(!in_array(current_admin_role(),$roles,true)){http_response_code(403);exit('Forbidden');}}
+function log_admin_activity(string $action,?string $details=null):void{global $pdo;if(!$pdo||empty($_SESSION['admin_id']))return;try{$ip=$_SERVER['REMOTE_ADDR']??'';$q=$pdo->prepare('INSERT INTO admin_activity(user_id,action,details,ip_hash) VALUES(?,?,?,?)');$q->execute([(int)$_SESSION['admin_id'],$action,$details,$ip?hash('sha256',$ip):null]);}catch(Throwable $e){}}
+function render_ad(string $slot):string{global $pdo;if(!$pdo)return '';try{$s=$pdo->prepare("SELECT html_code,width,height FROM advertisements WHERE slot=? AND status='active' LIMIT 1");$s->execute([$slot]);$ad=$s->fetch();if(!$ad)return '';$width=(int)$ad['width'];$height=(int)$ad['height'];return '<div class="ad-slot" data-slot="'.e($slot).'" data-width="'.$width.'" data-height="'.$height.'">'.$ad['html_code'].'</div>';}catch(Throwable $e){return '';}}

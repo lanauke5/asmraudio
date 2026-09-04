@@ -1,0 +1,23 @@
+<?php
+require __DIR__ . '/includes/bootstrap.php';
+$title = 'ASMR Audio Online';
+$description = 'Discover relaxing ASMR sounds, helpful guides, creators and recommended equipment.';
+
+$audio = $articles = $products = $creators = [];
+if (isset($pdo)) {
+    try { $audio = $pdo->query("SELECT * FROM audio_tracks WHERE status='published' ORDER BY created_at DESC LIMIT 6")->fetchAll(); } catch (Throwable $e) {}
+    try { $articles = $pdo->query("SELECT a.*, c.name AS category_name FROM articles a LEFT JOIN categories c ON c.id=a.category_id WHERE a.status='published' ORDER BY a.published_at DESC, a.created_at DESC LIMIT 6")->fetchAll(); } catch (Throwable $e) {}
+    try { $products = $pdo->query("SELECT * FROM products WHERE status='published' ORDER BY featured DESC, created_at DESC LIMIT 4")->fetchAll(); } catch (Throwable $e) {}
+    try { $creators = $pdo->query("SELECT * FROM creators WHERE status='published' ORDER BY featured DESC, name ASC LIMIT 4")->fetchAll(); } catch (Throwable $e) {}
+}
+require __DIR__ . '/includes/header.php';
+?>
+<div class="home-shell"><section class="hero">
+  <div class="hero-copy"><p class="eyebrow">CALM • FOCUS • SLEEP</p><h1>Find your calm with ASMR audio.</h1><p>Explore soothing sounds, practical guides, and creators that help you relax, sleep, and focus.</p><div class="hero-actions"><a class="button" href="<?= e(url('category/asmr-triggers/')) ?>">Explore ASMR Triggers</a><a class="button button-secondary" href="<?= e(url('category/sleep-sounds/')) ?>">Find Sleep Sounds</a></div></div>
+</section>
+<section class="section"><div class="section-heading"><h2>Browse by goal</h2></div><div class="card-grid four"><a class="card" href="<?= e(url('category/sleep-sounds/')) ?>"><h3>Sleep Better</h3><p>Gentle sounds for a restful night.</p></a><a class="card" href="<?= e(url('category/relaxation/')) ?>"><h3>Relax and Unwind</h3><p>Slow down and release tension.</p></a><a class="card" href="<?= e(url('category/focus-study/')) ?>"><h3>Focus and Study</h3><p>Steady ambience for deep work.</p></a><a class="card" href="<?= e(url('category/asmr-triggers/')) ?>"><h3>Experience Tingles</h3><p>Discover your favorite triggers.</p></a></div></section>
+<section class="section"><div class="section-heading"><h2>Popular triggers</h2><a href="<?= e(url('category/asmr-triggers/')) ?>">View all</a></div><div class="tag-grid"><?php foreach (['Whispering','Tapping','Brushing','Personal Attention','Roleplay','Food ASMR','Keyboard Sounds','No-Talking ASMR'] as $trigger): ?><a class="tag" href="<?= e(url('search.php?q='.rawurlencode($trigger))) ?>"><?= e($trigger) ?></a><?php endforeach; ?></div></section>
+<section class="section"><div class="section-heading"><h2>Featured sleep sounds</h2><a href="<?= e(url('audio')) ?>">Browse audio</a></div><div class="card-grid three"><?php if ($audio): foreach ($audio as $track): ?><article class="card audio-card"><?php if (!empty($track['cover_image'])): ?><img src="<?= e(url('uploads/'.$track['cover_image'])) ?>" alt="<?= e($track['title']) ?>" loading="lazy"><?php endif; ?><h3><a href="<?= e(url('audio/'.($track['slug'] ?? '').'/')) ?>"><?= e($track['title']) ?></a></h3><audio controls preload="none" src="<?= e(url('uploads/'.$track['file_path'])) ?>"></audio><small><?= e($track['duration'] ?? '') ?></small></article><?php endforeach; else: ?><div class="card"><h3>New sounds are coming soon</h3><p>Check back soon for relaxing audio.</p></div><?php endif; ?></div></section>
+<section class="section"><div class="section-heading"><h2>Latest guides</h2><a href="<?= e(url('search.php')) ?>">Read all</a></div><div class="card-grid three"><?php foreach ($articles as $article): ?><article class="card"><?php if (!empty($article['featured_image'])): ?><img src="<?= e(url('uploads/'.$article['featured_image'])) ?>" alt="<?= e($article['title']) ?>" loading="lazy"><?php endif; ?><p class="eyebrow"><?= e($article['category_name'] ?? 'Guide') ?></p><h3><a href="<?= e(url($article['slug'].'/')) ?>"><?= e($article['title']) ?></a></h3><p><?= e($article['excerpt'] ?? '') ?></p><small><?= e(date('M j, Y', strtotime($article['published_at'] ?? $article['created_at']))) ?></small></article><?php endforeach; ?></div></section>
+<section class="section newsletter"><h2>Get calming recommendations</h2><p>Receive new sounds and practical ASMR tips in your inbox.</p><a class="button" href="<?= e(url('subscribe.php')) ?>">Subscribe to the newsletter</a></section></div>
+<?php require __DIR__ . '/includes/footer.php'; ?>

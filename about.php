@@ -1,0 +1,1 @@
+<?php require __DIR__.'/includes/bootstrap.php';$title='About';require __DIR__.'/includes/header.php';?><div class="container"><h1>About ASMR Audio Online</h1><div class="card"><p>We publish practical, trustworthy resources about ASMR, sleep sounds, relaxation, focus and audio equipment.</p></div></div><?php require __DIR__.'/includes/footer.php';
