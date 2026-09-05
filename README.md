@@ -23,3 +23,4 @@ Scheduled articles are promoted on the first visitor request after their publica
 - Apply least-privilege roles and review admin activity.
 - Back up the database and `uploads/` before migrations.
 - Keep PHP and the operating system updated.
+Deployment test: GitHub Actions auto-deploy is connected.
