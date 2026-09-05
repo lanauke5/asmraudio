@@ -48,11 +48,17 @@
 }
 
 .article-main .ad-slot[data-slot="article-inline"]{
+  position:relative;
   width:100%;
   max-width:728px;
   aspect-ratio:728/90;
   margin:32px auto;
   overflow:hidden;
+}
+
+.article-main .ad-slot[data-slot="article-inline"] .ppcnesia-js-ad-wrapper{
+  position:absolute;
+  inset:0;
 }
 
 .article-main .ad-slot[data-slot="article-inline"] .ppcnesia-js-ad-wrapper,
