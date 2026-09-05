@@ -11,3 +11,11 @@ body.light{--bg:#f4f6fb;--surface:#fff;--surface2:#eef1f8;--text:#182238;--muted
 .nav-category-menu a:hover{background:var(--surface2)}
 .category-children{margin:28px 0}
 @media(max-width:760px){header{height:auto;min-height:72px;padding:10px 6%}.site-nav>a{display:none}.nav-categories{display:block}.nav-category-menu{position:fixed;left:6%;right:6%;top:72px;width:auto;grid-template-columns:1fr}.nav-category-menu a{display:block}.nav-categories summary{padding:8px}.nav-categories[open] summary{color:var(--text)}}
+
+
+/* Direct parent-category navigation on desktop */
+.site-nav{gap:13px;min-width:0}
+.site-nav>a{white-space:nowrap;font-size:.84rem}
+.site-nav .nav-categories{display:none}
+@media(max-width:1320px) and (min-width:921px){header{padding:0 3%}.site-nav{gap:9px}.site-nav>a{font-size:.76rem}}
+@media(max-width:920px){header{height:auto;min-height:72px;padding:10px 6%}.site-nav>a{display:none}.site-nav .nav-categories{display:block}.nav-categories summary{padding:8px}.nav-category-menu{position:fixed;left:6%;right:6%;top:72px;width:auto;grid-template-columns:1fr}.nav-category-menu a{display:block}.nav-categories[open] summary{color:var(--text)}}
