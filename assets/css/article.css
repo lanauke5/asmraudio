@@ -24,6 +24,20 @@
 .article-main>article>div.card{
   padding:16px 16px 22px;
 }
+.article-main table{
+  width:100%;
+  border-collapse:collapse;
+  margin:20px 0 28px;
+  font-size:.95rem;
+}
+.article-main caption{text-align:left;font-weight:700;margin-bottom:10px}
+.article-main th,.article-main td{
+  padding:11px 12px;
+  border:1px solid #ffffff20;
+  text-align:left;
+  vertical-align:top;
+}
+.article-main th{background:#ffffff0b}
 
 .article-toc-sidebar{
   position:sticky;
@@ -148,4 +162,5 @@
     padding-right:6%;
   }
   .article-sidebar .ad-slot{display:none}
+  .article-main table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
