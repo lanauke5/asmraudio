@@ -5,6 +5,30 @@ if($pdo&&$slug){$s=$pdo->prepare("SELECT * FROM articles WHERE slug=? AND status
 if(!$a){http_response_code(404);$a=['title'=>'Article not found','content'=>'This article is unavailable.','excerpt'=>'','category'=>'','author'=>'ASMR Audio Online','published_at'=>null,'views'=>0,'featured_image'=>'','slug'=>'','meta_title'=>'','meta_description'=>'','canonical_url'=>'','faq_json'=>'','noindex'=>1];}
 $title=$a['meta_title']?:$a['title'];$description=$a['meta_description']?:$a['excerpt'];$canonical=$a['canonical_url']?:url($a['slug'].'/');$content=(string)$a['content'];$reading=max(1,(int)ceil(str_word_count(strip_tags($content))/200));$toc=[];
 $content=preg_replace_callback('/<h([23])([^>]*)>(.*?)<\/h\1>/is',function($m)use(&$toc){$label=trim(strip_tags($m[3]));$id=trim(preg_replace('/[^a-z0-9]+/i','-',strtolower($label)),'-')?:'section';$toc[]=['label'=>$label,'id'=>$id];return '<h'.$m[1].$m[2].' id="'.e($id).'">'.$m[3].'</h'.$m[1].'>';},$content)??$content;
+$safeContent=safe_html($content);
+$articleAdSlots=[
+  30=>['article-inline-30','article-inline'],
+  55=>['article-inline-55','article-inline'],
+  75=>['article-inline-75','article-inline'],
+];
+$articleBlocks=array_values(array_filter(preg_split('/(?=<(?:h[23]|p|ul|ol|blockquote)\\b)/i',$safeContent)?:[],static fn($block)=>trim($block)!==''));
+$articleBody=$safeContent;
+if($articleBlocks){
+  $articleAdBreaks=[];
+  foreach($articleAdSlots as $percent=>$slotDetails){
+    $position=max(1,(int)ceil(count($articleBlocks)*$percent/100));
+    $articleAdBreaks[$position][]=$slotDetails;
+  }
+  $articleBody='';
+  foreach($articleBlocks as $index=>$block){
+    $articleBody.=$block;
+    foreach($articleAdBreaks[$index+1]??[] as [$slot,$fallback]){
+      $ad=render_ad($slot);
+      if($ad===''&&$fallback!==null)$ad=render_ad($fallback);
+      if($ad!=='')$articleBody.='<aside class="article-ad-break" aria-label="Advertisement">'.$ad.'</aside>';
+    }
+  }
+}
 $faqs=[];if(!empty($a['faq_json'])){$decoded=json_decode($a['faq_json'],true);if(is_array($decoded))$faqs=$decoded;}$comments=$related=$products=[];$prev=$next=null;
 if($pdo&&!empty($a['id'])){try{$s=$pdo->prepare("SELECT name,body FROM comments WHERE article_id=? AND status='approved' ORDER BY created_at DESC");$s->execute([$a['id']]);$comments=$s->fetchAll();$s=$pdo->prepare("SELECT title,slug,excerpt FROM articles WHERE status='published' AND id<>? AND category=? ORDER BY published_at DESC LIMIT 3");$s->execute([$a['id'],$a['category']??'']);$related=$s->fetchAll();$products=$pdo->query("SELECT product_name,slug,short_description,best_for FROM products WHERE status='published' AND featured=1 ORDER BY updated_at DESC LIMIT 3")->fetchAll();$s=$pdo->prepare("SELECT slug,title FROM articles WHERE status='published' AND published_at < ? ORDER BY published_at DESC LIMIT 1");$s->execute([$a['published_at']??date('Y-m-d H:i:s')]);$prev=$s->fetch()?:null;$s=$pdo->prepare("SELECT slug,title FROM articles WHERE status='published' AND published_at > ? ORDER BY published_at ASC LIMIT 1");$s->execute([$a['published_at']??date('Y-m-d H:i:s')]);$next=$s->fetch()?:null;}catch(Throwable $e){}}
 if($faqs)$extra_schema=faq_schema($faqs);require __DIR__.'/includes/header.php';
@@ -18,7 +42,7 @@ $articleCssVersion=(string)(filemtime(__DIR__.'/assets/css/article.css')?:1);
     <?php if($a['featured_image']):?><img loading="lazy" src="<?=e(media_url($a['featured_image']))?>" alt="<?=e($a['title'])?>"><?php endif;?>
     <p class="muted">By <?=e($a['author'])?> &middot; <?=e($a['published_at']?date('F j, Y',strtotime($a['published_at'])):'')?> &middot; <?=$reading?> min read &middot; <?=e((string)$a['views'])?> views</p>
     <?php if($toc):?><aside class="card"><strong>In this guide</strong><ul><?php foreach($toc as $item):?><li><a href="#<?=e($item['id'])?>"><?=e($item['label'])?></a></li><?php endforeach;?></ul></aside><?php endif;?>
-    <p><?=e($a['excerpt'])?></p><div class="card"><?=safe_html($content)?></div><?=render_ad('article-inline')?>
+    <p><?=e($a['excerpt'])?></p><div class="card"><?=$articleBody?></div>
     <p class="muted">Wellness information is educational and is not a substitute for professional medical diagnosis or treatment.</p>
     <p><strong>Share:</strong> <a target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=<?=rawurlencode($canonical)?>">Facebook</a> &middot; <a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?url=<?=rawurlencode($canonical)?>&text=<?=rawurlencode($a['title'])?>">X</a></p>
    </article>
