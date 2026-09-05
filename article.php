@@ -8,7 +8,8 @@ $content=preg_replace_callback('/<h([23])([^>]*)>(.*?)<\/h\1>/is',function($m)us
 $faqs=[];if(!empty($a['faq_json'])){$decoded=json_decode($a['faq_json'],true);if(is_array($decoded))$faqs=$decoded;}$comments=$related=$products=[];$prev=$next=null;
 if($pdo&&!empty($a['id'])){try{$s=$pdo->prepare("SELECT name,body FROM comments WHERE article_id=? AND status='approved' ORDER BY created_at DESC");$s->execute([$a['id']]);$comments=$s->fetchAll();$s=$pdo->prepare("SELECT title,slug,excerpt FROM articles WHERE status='published' AND id<>? AND category=? ORDER BY published_at DESC LIMIT 3");$s->execute([$a['id'],$a['category']??'']);$related=$s->fetchAll();$products=$pdo->query("SELECT product_name,slug,short_description,best_for FROM products WHERE status='published' AND featured=1 ORDER BY updated_at DESC LIMIT 3")->fetchAll();$s=$pdo->prepare("SELECT slug,title FROM articles WHERE status='published' AND published_at < ? ORDER BY published_at DESC LIMIT 1");$s->execute([$a['published_at']??date('Y-m-d H:i:s')]);$prev=$s->fetch()?:null;$s=$pdo->prepare("SELECT slug,title FROM articles WHERE status='published' AND published_at > ? ORDER BY published_at ASC LIMIT 1");$s->execute([$a['published_at']??date('Y-m-d H:i:s')]);$next=$s->fetch()?:null;}catch(Throwable $e){}}
 if($faqs)$extra_schema=faq_schema($faqs);require __DIR__.'/includes/header.php';
-?><link rel="stylesheet" href="<?=url('assets/css/article.css')?>">
+$articleCssVersion=(string)(filemtime(__DIR__.'/assets/css/article.css')?:1);
+?><link rel="stylesheet" href="<?=e(url('assets/css/article.css?v='.$articleCssVersion))?>">
 <div class="container">
  <div class="article-layout">
   <div class="article-main">
