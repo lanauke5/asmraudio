@@ -18,10 +18,11 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.ASMRONLINE }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -e
             cd /www/wwwroot/asmraudio.online
             git fetch origin main
             git reset --hard origin/main
+            echo "Deploy selesai: $(git rev-parse --short HEAD)"
