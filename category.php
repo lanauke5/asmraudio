@@ -78,19 +78,18 @@ if(!$category){
         }
         unset($child);
 
-        $path=$slug.'/';
-        $canonical=url($path.($activeChild?'?subcategory='.rawurlencode($activeChild['slug']):''));
+        $canonical=url('category.php?slug='.rawurlencode($slug).($activeChild?'&subcategory='.rawurlencode($activeChild['slug']):''));
         $list=[];
         foreach($rows as $row)$list[]=['name'=>$row['title'],'url'=>$row['canonical_url']?:url($slug.'/'.$row['slug'].'/')];
         $schema=item_list_schema($list);
-        $crumbs=['Home'=>url(),$category['name']=>url($slug.'/')];
+        $crumbs=['Home'=>url(),$category['name']=>url('category.php?slug='.rawurlencode($slug))];
         if($activeChild)$crumbs[$activeChild['name']]=$canonical;
         $extra_schema=breadcrumb_schema($crumbs);
     }
 }
 
 $pages=(int)ceil($total/$perPage);
-$paginationBase=$category?url($slug.'/'.($activeChild?'?subcategory='.rawurlencode($activeChild['slug']).'&':'')):'';
+$paginationBase=$category?url('category.php?slug='.rawurlencode($slug).($activeChild?'&subcategory='.rawurlencode($activeChild['slug']):'')):'';
 $prev_url=$page>1?$paginationBase.($activeChild?'&':'?').'page='.($page-1):null;
 $next_url=$page<$pages?$paginationBase.($activeChild?'&':'?').'page='.($page+1):null;
 require __DIR__.'/includes/header.php';
@@ -103,11 +102,11 @@ require __DIR__.'/includes/header.php';
  <section class="category-children" aria-label="Subcategories">
   <h2>Explore <?=e($category['name'])?></h2>
   <div class="card-grid three">
-   <?php foreach($children as $child):?><a class="card" href="<?=url($slug.'/?subcategory='.rawurlencode($child['slug']))?>"><h3><?=e($child['name'])?></h3><p><?=e($child['description']?:('Explore '.strtolower($child['name']).'.'))?></p><small><?=e((string)$child['article_count'])?> article(s)</small></a><?php endforeach;?>
+   <?php foreach($children as $child):?><a class="card" href="<?=url('category.php?slug='.rawurlencode($slug).'&subcategory='.rawurlencode($child['slug']))?>"><h3><?=e($child['name'])?></h3><p><?=e($child['description']?:('Explore '.strtolower($child['name']).'.'))?></p><small><?=e((string)$child['article_count'])?> article(s)</small></a><?php endforeach;?>
   </div>
  </section>
  <?php endif;?>
- <?php if($activeChild):?><p><a href="<?=url($slug.'/')?>">&larr; All <?=e($category['name'])?></a></p><?php endif;?>
+ <?php if($activeChild):?><p><a href="<?=url('category.php?slug='.rawurlencode($slug))?>">&larr; All <?=e($category['name'])?></a></p><?php endif;?>
  <?php if($category):?><p class="muted"><?=e((string)$total)?> published article(s).</p><?php endif;?>
  <div class="grid">
   <?php foreach($rows as $article):?><article class="card">
@@ -118,6 +117,6 @@ require __DIR__.'/includes/header.php';
   </article><?php endforeach;?>
  </div>
  <?php if($category&&!$rows):?><p>No published articles found yet.</p><?php endif;?>
- <?php if($pages>1):?><nav aria-label="Category pagination"><?php for($i=1;$i<=$pages;$i++):?><a <?=$i===$page?'aria-current="page"':''?> href="<?=url($slug.'/'.($activeChild?'?subcategory='.rawurlencode($activeChild['slug']).'&':'?').'page='.$i)?>"><?=$i?></a> <?php endfor;?></nav><?php endif;?>
+ <?php if($pages>1):?><nav aria-label="Category pagination"><?php for($i=1;$i<=$pages;$i++):?><a <?=$i===$page?'aria-current="page"':''?> href="<?=url('category.php?slug='.rawurlencode($slug).($activeChild?'&subcategory='.rawurlencode($activeChild['slug']):'').'&page='.$i)?>"><?=$i?></a> <?php endfor;?></nav><?php endif;?>
 </div>
 <?php require __DIR__.'/includes/footer.php';
