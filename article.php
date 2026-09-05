@@ -34,7 +34,7 @@ if($pdo&&!empty($a['id'])){try{$s=$pdo->prepare("SELECT name,body FROM comments 
 if($faqs)$extra_schema=faq_schema($faqs);require __DIR__.'/includes/header.php';
 $articleCssVersion=(string)(filemtime(__DIR__.'/assets/css/article.css')?:1);
 ?><link rel="stylesheet" href="<?=e(url('assets/css/article.css?v='.$articleCssVersion))?>">
-<div class="container">
+<div class="container article-container">
  <div class="article-layout<?=$toc?' has-toc':''?>">
   <?php if($toc):?><aside class="article-toc-sidebar card" aria-label="In this guide"><strong>In this guide</strong><ul><?php foreach($toc as $item):?><li><a href="#<?=e($item['id'])?>"><?=e($item['label'])?></a></li><?php endforeach;?></ul></aside><?php endif;?>
   <div class="article-main">
