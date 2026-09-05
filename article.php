@@ -35,13 +35,14 @@ if($faqs)$extra_schema=faq_schema($faqs);require __DIR__.'/includes/header.php';
 $articleCssVersion=(string)(filemtime(__DIR__.'/assets/css/article.css')?:1);
 ?><link rel="stylesheet" href="<?=e(url('assets/css/article.css?v='.$articleCssVersion))?>">
 <div class="container">
- <div class="article-layout">
+ <div class="article-layout<?=$toc?' has-toc':''?>">
+  <?php if($toc):?><aside class="article-toc-sidebar card" aria-label="In this guide"><strong>In this guide</strong><ul><?php foreach($toc as $item):?><li><a href="#<?=e($item['id'])?>"><?=e($item['label'])?></a></li><?php endforeach;?></ul></aside><?php endif;?>
   <div class="article-main">
    <p class="muted"><a href="<?=url()?>">Home</a> / <?=e($a['category']?:'Article')?></p>
    <article><h1><?=e($a['title'])?></h1>
     <?php if($a['featured_image']):?><img loading="lazy" src="<?=e(media_url($a['featured_image']))?>" alt="<?=e($a['title'])?>"><?php endif;?>
     <p class="muted">By <?=e($a['author'])?> &middot; <?=e($a['published_at']?date('F j, Y',strtotime($a['published_at'])):'')?> &middot; <?=$reading?> min read &middot; <?=e((string)$a['views'])?> views</p>
-    <?php if($toc):?><aside class="card"><strong>In this guide</strong><ul><?php foreach($toc as $item):?><li><a href="#<?=e($item['id'])?>"><?=e($item['label'])?></a></li><?php endforeach;?></ul></aside><?php endif;?>
+    <?php if($toc):?><aside class="article-toc-inline card" aria-label="In this guide"><strong>In this guide</strong><ul><?php foreach($toc as $item):?><li><a href="#<?=e($item['id'])?>"><?=e($item['label'])?></a></li><?php endforeach;?></ul></aside><?php endif;?>
     <p><?=e($a['excerpt'])?></p><div class="card"><?=$articleBody?></div>
     <p class="muted">Wellness information is educational and is not a substitute for professional medical diagnosis or treatment.</p>
     <p><strong>Share:</strong> <a target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=<?=rawurlencode($canonical)?>">Facebook</a> &middot; <a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?url=<?=rawurlencode($canonical)?>&text=<?=rawurlencode($a['title'])?>">X</a></p>
