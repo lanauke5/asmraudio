@@ -1,6 +1,9 @@
 <?php
 require __DIR__.'/includes/bootstrap.php';
 $slug=trim($_GET['slug']??'');$a=null;
+if($pdo&&$slug==='best-sleep-audio-devices-asmr-white-noise-rain-sounds'){
+    try{$s=$pdo->prepare('SELECT 1 FROM articles WHERE slug=? LIMIT 1');$s->execute([$slug]);if(!$s->fetchColumn()){$sql=file_get_contents(__DIR__.'/database/article-best-sleep-audio-devices.sql');if($sql!==false)$pdo->exec($sql);}}catch(Throwable $e){}
+}
 if($pdo&&$slug){$s=$pdo->prepare("SELECT * FROM articles WHERE slug=? AND status='published' LIMIT 1");$s->execute([$slug]);$a=$s->fetch();if($a){$pdo->prepare('UPDATE articles SET views=views+1 WHERE id=?')->execute([$a['id']]);$a['views']++;}}
 if(!$a){http_response_code(404);$a=['title'=>'Article not found','content'=>'This article is unavailable.','excerpt'=>'','category'=>'','author'=>'ASMR Audio Online','published_at'=>null,'views'=>0,'featured_image'=>'','slug'=>'','meta_title'=>'','meta_description'=>'','canonical_url'=>'','faq_json'=>'','noindex'=>1];}
 $title=$a['meta_title']?:$a['title'];$description=$a['meta_description']?:$a['excerpt'];$canonical=$a['canonical_url']?:url($a['slug'].'/');$content=(string)$a['content'];$reading=max(1,(int)ceil(str_word_count(strip_tags($content))/200));$toc=[];
