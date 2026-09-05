@@ -57,6 +57,11 @@ if($pdo&&$_SERVER['REQUEST_METHOD']==='POST'){
                     $pdo->commit();
                 }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
             },
+            '003_publish_best_sleep_audio_devices'=>static function(PDO $pdo):void{
+                $sql=file_get_contents(__DIR__.'/../database/article-best-sleep-audio-devices.sql');
+                if($sql===false)throw new RuntimeException('Article migration file is unavailable.');
+                $pdo->exec($sql);
+            },
         ];
         foreach($migrations as $version=>$migration){
             $s=$pdo->prepare('SELECT 1 FROM schema_migrations WHERE version=?');
